@@ -23,10 +23,10 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/airstack-xyz/go-ens/v3/contracts/resolver"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/wealdtech/go-ens/v3/contracts/resolver"
 )
 
 var zeroHash = make([]byte, 32)
@@ -79,10 +79,14 @@ func NewResolverAt(backend bind.ContractBackend, domain string, address common.A
 	}
 	_, err = contract.Addr(nil, nameHash)
 	if err != nil {
-		if err.Error() == "no contract code at given address" {
-			return nil, errors.New("no resolver")
+		if !(err.Error() == "execution reverted: Unknown Node ID" || err.Error() == "execution reverted: subdomain not configured") {
+			// if  {
+			if err.Error() == "no contract code at given address" {
+				return nil, errors.New("no resolver")
+			}
+			return nil, err
+			// }
 		}
-		return nil, err
 	}
 
 	return &Resolver{
